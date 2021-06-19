@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-with-errors": "jest",
+    "test-with-errors": "jest --reporters default jest-stare",
     "test": "jest --verbose || true"
   },
   "author": "",
@@ -13,6 +13,7 @@
     "jest": "^27.0.4",
     "jest-html-reporter": "^3.4.1",
     "jest-puppeteer": "^5.0.4",
+    "jest-stare": "^2.2.2",
     "puppeteer": "^9.1.1"
   }
 }

@@ -25,7 +25,7 @@ const NUMBER_3 = 3;
 const NUMBER_15 = 15;
 const TEXT_HOGE = "hoge";
 
-describe("test all HTMLs!", () => {
+describe(`test all HTMLs!: ${targets.length} 件`, () => {
   beforeAll(async () => {
     browser = await puppeteer.launch({ headless: false });
   });
@@ -45,7 +45,6 @@ describe("test all HTMLs!", () => {
         // jest.setTimeout(60000);
       });
 
-      // テスト終了後ブラウザを終了させる
       afterAll(async () => {
         await page.close();
       });
@@ -65,7 +64,7 @@ describe("test all HTMLs!", () => {
         await searchBox.type(NUMBER_3.toString());
         const search = await page.$(`input[type="button"]`);
         await search.click();
-        await page.waitFor(1500);
+        await page.waitFor(1000);
         const res = await page.$eval("#name1", (el) => el.value);
         expect(res).toBe("Clementine Bauch");
       });
@@ -76,7 +75,7 @@ describe("test all HTMLs!", () => {
         await searchBox.type(NUMBER_15.toString());
         const search = await page.$(`input[type="button"]`);
         await search.click();
-        await page.waitFor(1500);
+        await page.waitFor(1000);
         expect(dialogHandler).toHaveBeenCalled();
       });
     });
