@@ -1,4 +1,4 @@
-const pupetter = require("puppeteer");
+const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 
@@ -15,51 +15,70 @@ const getFileNames = (dirpath = "files") => {
 
 const fileNames = getFileNames();
 
-const targetFile = fileNames[0];
-// console.log(targetFile);
+// const targets = fileNames.slice(0, 5);
+const targets = fileNames;
 
-let page, browser;
+let browser = null;
+let page = null;
 
-beforeAll(async () => {
-  // const browser = pupetter.launch();
-  browser = await pupetter.launch();
-  page = await browser.newPage();
-  const contentHtml = fs.readFileSync(targetFile, "utf8");
-  await page.setContent(contentHtml);
-  // await sleep(1000);
-});
+const NUMBER_3 = 3;
+const NUMBER_15 = 15;
+const TEXT_HOGE = "hoge";
 
-// test("should display `google` text on page", async () => {
-//   await expect(page).toMatch("ユーザーss");
-// });
-
-describe("必須課題", () => {
-  test(`ユーザーIDが 1 の時の表示が正しい`, async () => {
-    // await page.waitForNavigation();
-    // const summary = await page.evaluate(
-    //   () => document.getElementById("user_id").innerText
-    // );
-    // console.log(summary);
-    // await page.waitForSelector("#user_id");
-    // const a = await page.$("input #user_id");
-    // const a = await page.$("#user_id");
-    // await page.type("input #user_id", "1");
-    await expect(page.$("#user_id")).not.toBeNull();
-    // const b = await await a.getProperty("textContent").jsonValue();
-    // const html = await page.evaluate(() => {
-    //   return document.getElementById("user_id").innerHTML;
-    // });
-    // console.log(html);
-    // console.log(a);
-    // expect(a).toBe("");
+describe("test all HTMLs!", () => {
+  beforeAll(async () => {
+    browser = await puppeteer.launch({ headless: false });
   });
-});
 
-// test(`ユーザーIDが 15 の時に alert が出る`);
+  afterAll(async () => {
+    await browser.close();
+  });
 
-// // テストすべて終了後の処理
-afterAll(async () => {
-  await page.close();
-  await browser.close();
-  // browser.close().then(() => console.log("completed!"));
+  for (let item of targets) {
+    if (item.includes("gitkeep")) continue;
+    describe(`${item.slice(6)} のテスト`, () => {
+      beforeAll(async () => {
+        page = await browser.newPage();
+        page.on("dialog", dialogHandler);
+        const contentHtml = fs.readFileSync(item, "utf8");
+        await page.setContent(contentHtml);
+        // jest.setTimeout(60000);
+      });
+
+      // テスト終了後ブラウザを終了させる
+      afterAll(async () => {
+        await page.close();
+      });
+
+      const dialogHandler = jest.fn((dialog) => dialog.dismiss());
+
+      test("1. ユーザーIDが入力できる", async () => {
+        const searchBox = await page.$("#user_id");
+        await searchBox.type(TEXT_HOGE);
+        const name = await page.$eval("#user_id", (el) => el.value);
+        await expect(name).toMatch(TEXT_HOGE);
+      });
+
+      test("2. user3 で検索したら名前(Clementine Bauch)が出てくる", async () => {
+        const searchBox = await page.$("#user_id");
+        await searchBox.evaluate((s) => (s.value = ""));
+        await searchBox.type(NUMBER_3.toString());
+        const search = await page.$(`input[type="button"]`);
+        await search.click();
+        await page.waitFor(1500);
+        const res = await page.$eval("#name1", (el) => el.value);
+        expect(res).toBe("Clementine Bauch");
+      });
+
+      test("3. user15 で検索したらalertが出てくる", async () => {
+        const searchBox = await page.$("#user_id");
+        await searchBox.evaluate((s) => (s.value = ""));
+        await searchBox.type(NUMBER_15.toString());
+        const search = await page.$(`input[type="button"]`);
+        await search.click();
+        await page.waitFor(1500);
+        expect(dialogHandler).toHaveBeenCalled();
+      });
+    });
+  }
 });
